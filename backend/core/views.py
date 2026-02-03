@@ -32,6 +32,8 @@ class CreatePostView(APIView):
 
         print("SERIALIZER ERRORS:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    print("USING NEW SERIALIZER VERSION")
+
 
 class FeedView(APIView):
     def get(self, request):
