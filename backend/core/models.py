@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Q
-
+from django.db.models import UniqueConstraint
 
 
 class Post(models.Model):
@@ -10,7 +9,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Post by {self.author.username}"
+        return f"Post {self.id} by {self.author.username}"
 
 
 class Comment(models.Model):
@@ -20,14 +19,14 @@ class Comment(models.Model):
         "self",
         null=True,
         blank=True,
-        related_name="children",
-        on_delete=models.CASCADE
+        related_name="replies",
+        on_delete=models.CASCADE,
     )
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Comment by {self.author.username}"
+        return f"Comment {self.id}"
 
 
 class Like(models.Model):
@@ -38,15 +37,13 @@ class Like(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
+            UniqueConstraint(
                 fields=["user", "post"],
-                condition=Q(post__isnull=False),
-                name="unique_post_like"
+                name="unique_user_post_like",
             ),
-            models.UniqueConstraint(
+            UniqueConstraint(
                 fields=["user", "comment"],
-                condition=Q(comment__isnull=False),
-                name="unique_comment_like"
+                name="unique_user_comment_like",
             ),
         ]
 
