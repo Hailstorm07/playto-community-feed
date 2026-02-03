@@ -1,15 +1,18 @@
 function Comment({ comment }) {
   return (
-    <div className="ml-4 mt-2 border-l pl-3">
-      <p className="text-sm font-semibold">
+    <div className="ml-4 mb-3 border-l-2 border-gray-300 pl-3">
+      <p className="text-sm font-semibold text-gray-700">
         {comment.author}
       </p>
-      <p className="text-sm">
+      <p className="text-sm text-gray-800">
         {comment.content}
       </p>
+      <p className="text-xs text-gray-500 mt-1">
+        {new Date(comment.created_at).toLocaleDateString()}
+      </p>
 
-      {comment.children.map(child => (
-        <Comment key={child.id} comment={child} />
+      {comment.replies?.map(reply => (
+        <Comment key={reply.id} comment={reply} />
       ))}
     </div>
   );
