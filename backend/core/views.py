@@ -14,24 +14,33 @@ from .utils import build_comment_tree
 
 class CreatePostView(APIView):
     def post(self, request):
-        print("REQUEST DATA:", request.data)
+        try:
+            print("REQUEST DATA:", request.data)
+            print("REQUEST CONTENT TYPE:", request.content_type)
 
-        user = User.objects.first()
-        if not user:
-            return Response(
-                {"error": "No users exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            user = User.objects.first()
+            print(f"USER FOUND: {user}")
+            if not user:
+                return Response(
+                    {"error": "No users exist"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        serializer = PostSerializer(data=request.data)
+            serializer = PostSerializer(data=request.data)
+            print(f"SERIALIZER CREATED: {serializer}")
 
-        if serializer.is_valid():
-            serializer.save(author=user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                serializer.save(author=user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        # 👇 THIS IS CRITICAL
-        print("SERIALIZER ERRORS:", serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # 👇 THIS IS CRITICAL
+            print("SERIALIZER ERRORS:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"EXCEPTION: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FeedView(APIView):
