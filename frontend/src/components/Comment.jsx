@@ -8,16 +8,18 @@ function Comment({ comment, postId, onCommentAdded }) {
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liking, setLiking] = useState(false);
+  const [likeUsername, setLikeUsername] = useState("");
 
   const handleLike = async () => {
     setLiking(true);
     try {
-      const res = await likeComment(commentData.id, replyUsername || "Anonymous");
+      const res = await likeComment(commentData.id, likeUsername || "Anonymous");
       if (res.data.liked) {
         setCommentData({ ...commentData, like_count: (commentData.like_count || 0) + 1 });
       } else {
         setCommentData({ ...commentData, like_count: Math.max(0, (commentData.like_count || 0) - 1) });
       }
+      setLikeUsername("");
     } catch (error) {
       console.error("Error liking comment:", error);
     }
@@ -72,13 +74,23 @@ function Comment({ comment, postId, onCommentAdded }) {
       >
         Reply
       </button>
-      <button
-        onClick={handleLike}
-        disabled={liking}
-        className="text-xs text-blue-600 hover:text-blue-800 mt-2 disabled:opacity-50"
-      >
-        👍 {commentData.like_count || 0}
-      </button>
+
+      <div className="inline-flex items-center gap-1">
+        <input
+          type="text"
+          className="border p-1 rounded text-xs w-20"
+          placeholder="Name"
+          value={likeUsername}
+          onChange={(e) => setLikeUsername(e.target.value)}
+        />
+        <button
+          onClick={handleLike}
+          disabled={liking}
+          className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+        >
+          👍 {commentData.like_count || 0}
+        </button>
+      </div>
 
       {showReplyForm && (
         <div className="mt-2 p-2 border rounded bg-gray-50">

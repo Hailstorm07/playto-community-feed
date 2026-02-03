@@ -38,7 +38,7 @@ class FeedView(APIView):
             .prefetch_related(
                 Prefetch(
                     "comments",
-                    queryset=Comment.objects.select_related("author").prefetch_related("replies"),
+                    queryset=Comment.objects.filter(parent__isnull=True).select_related("author").prefetch_related("replies"),
                 )
             )
             .order_by("-created_at")
