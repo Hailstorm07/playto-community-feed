@@ -5,15 +5,19 @@ from .models import Post, Comment, Like
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ["id", "author", "content", "created_at", "replies"]
+        fields = ["id", "author", "content", "created_at", "replies", "like_count"]
 
     def get_replies(self, obj):
         return CommentSerializer(
             obj.replies.all(), many=True
         ).data
+    
+    def get_like_count(self, obj):
+        return Like.objects.filter(comment=obj).count()
         
         
 class PostSerializer(serializers.ModelSerializer):

@@ -90,6 +90,36 @@ class LeaderboardView(APIView):
 
         return Response(list(leaderboard))
 
+
+class LikeCommentView(APIView):
+    def post(self, request, comment_id):
+        # Get or create user based on username
+        username = request.data.get("username", "Anonymous")
+        if not username.strip():
+            username = "Anonymous"
+        
+        user, created_user = User.objects.get_or_create(username=username)
+
+        with transaction.atomic():
+            like = Like.objects.filter(user=user, comment_id=comment_id).first()
+            
+            if like:
+                # Unlike - remove the like
+                like.delete()
+                # Remove karma event
+                comment = Comment.objects.get(id=comment_id)
+                KarmaEvent.objects.filter(user=comment.author, points=1).delete()
+                return Response({"liked": False})
+            else:
+                # Like - add new like
+                comment = Comment.objects.get(id=comment_id)
+                Like.objects.create(user=user, comment_id=comment_id)
+                KarmaEvent.objects.create(
+                    user=comment.author,
+                    points=1,
+                )
+                return Response({"liked": True})
+
 class CreateCommentView(APIView):
     def post(self, request):
         # Get or create user based on username

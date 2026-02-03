@@ -31,11 +31,23 @@ function PostCard({ post, onPostUpdate }) {
 
     try {
       await createComment(postData.id, commentContent, commentUsername || "Anonymous");
+      
+      // Add comment to local state instead of full refresh
+      const newComment = {
+        id: Math.random(),
+        author: commentUsername || "Anonymous",
+        content: commentContent,
+        created_at: new Date().toISOString(),
+        replies: []
+      };
+      setPostData({
+        ...postData,
+        comments: [...(postData.comments || []), newComment]
+      });
+      
       setCommentContent("");
       setCommentUsername("");
       setShowCommentForm(false);
-      // Refresh to get the new comment
-      onPostUpdate?.();
     } catch (error) {
       console.error("Error adding comment:", error);
     }
