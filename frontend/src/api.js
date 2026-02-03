@@ -6,7 +6,7 @@ export const fetchFeed = () =>
   axios.get(`${API_BASE}/feed/`);
 
 export const createPost = (content) =>
-  axios.post(`${API_BASE}/posts/`);
+  axios.post(`${API_BASE}/posts/`, { content });
 
 export const fetchLeaderboard = () =>
   axios.get(`${API_BASE}/leaderboard/`);
