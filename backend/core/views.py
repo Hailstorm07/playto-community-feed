@@ -14,33 +14,20 @@ from .utils import build_comment_tree
 
 class CreatePostView(APIView):
     def post(self, request):
-        try:
-            print("REQUEST DATA:", request.data)
-            print("REQUEST CONTENT TYPE:", request.content_type)
+        # Get or create user based on username
+        username = request.data.get("username", "Anonymous")
+        if not username.strip():
+            username = "Anonymous"
+        
+        user, created = User.objects.get_or_create(username=username)
 
-            user = User.objects.first()
-            print(f"USER FOUND: {user}")
-            if not user:
-                return Response(
-                    {"error": "No users exist"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        serializer = PostSerializer(data=request.data)
 
-            serializer = PostSerializer(data=request.data)
-            print(f"SERIALIZER CREATED: {serializer}")
+        if serializer.is_valid():
+            serializer.save(author=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-            if serializer.is_valid():
-                serializer.save(author=user)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            # 👇 THIS IS CRITICAL
-            print("SERIALIZER ERRORS:", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(f"EXCEPTION: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FeedView(APIView):
@@ -63,7 +50,12 @@ class FeedView(APIView):
 
 class LikePostView(APIView):
     def post(self, request, post_id):
-        user = User.objects.first()
+        # Get or create user based on username
+        username = request.data.get("username", "Anonymous")
+        if not username.strip():
+            username = "Anonymous"
+        
+        user, created_user = User.objects.get_or_create(username=username)
 
         with transaction.atomic():
             like, created = Like.objects.get_or_create(
@@ -96,8 +88,14 @@ class LeaderboardView(APIView):
 
 class CreateCommentView(APIView):
     def post(self, request):
-        user = User.objects.first()
-        Comment.objects.create(
+        # Get or create user based on username
+        username = request.data.get("username", "Anonymous")
+        if not username.strip():
+            username = "Anonymous"
+        
+        user, created = User.objects.get_or_create(username=username)
+        
+        comment = Comment.objects.create(
             author=user,
             post_id=request.data["post_id"],
             parent_id=request.data.get("parent_id"),
