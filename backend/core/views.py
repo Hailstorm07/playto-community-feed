@@ -30,6 +30,7 @@ class CreatePostView(APIView):
             serializer.save(author=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+        print("SERIALIZER ERRORS:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FeedView(APIView):
