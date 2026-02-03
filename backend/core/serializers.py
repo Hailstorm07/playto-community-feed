@@ -15,12 +15,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField()
-    comments = serializers.SerializerMethodField()
+    author = serializers.CharField(
+        source="author.username",
+        read_only=True
+    )
 
     class Meta:
         model = Post
-        fields = ["id", "author", "content", "created_at", "comments"]
-
-    def get_comments(self, obj):
-        return CommentSerializer(obj.comment_tree, many=True).data
+        fields = ["id", "author", "content", "like_count"]

@@ -11,7 +11,6 @@ from .utils import build_comment_tree
 
 class CreatePostView(APIView):
     def post(self, request):
-        # Demo-only: assign first user as author
         user = User.objects.first()
 
         if not user:
