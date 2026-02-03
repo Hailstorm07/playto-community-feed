@@ -253,6 +253,6 @@ MIT
 
 ---
 
-**Built by:** GitHub Copilot + Human Review  
+**Built by:** Aniket Kumar  
 **Challenge:** Playto Engineering Interview  
 **Date:** February 2026
