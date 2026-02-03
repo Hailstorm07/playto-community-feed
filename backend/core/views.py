@@ -1,38 +1,29 @@
 from django.contrib.auth.models import User
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db import transaction
-from django.utils.timezone import now
-from datetime import timedelta
-from django.db.models import Sum
-
-from .models import Post, Comment, Like, KarmaEvent
+from rest_framework import status
 from .serializers import PostSerializer
-from .utils import build_comment_tree
 
 class CreatePostView(APIView):
     def post(self, request):
-        user = User.objects.first()
+        print("REQUEST DATA:", request.data)
 
+        user = User.objects.first()
         if not user:
             return Response(
                 {"error": "No users exist"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = PostSerializer(
-            data=request.data,
-            context={"request": request}
-        )
+        serializer = PostSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save(author=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+        # 👇 THIS IS CRITICAL
         print("SERIALIZER ERRORS:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    print("USING NEW SERIALIZER VERSION")
 
 
 class FeedView(APIView):
