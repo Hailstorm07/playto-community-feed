@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import { fetchLeaderboard } from "../api";
 
 function Leaderboard() {
   const [users, setUsers] = useState([]);
