@@ -58,18 +58,22 @@ class LikePostView(APIView):
         user, created_user = User.objects.get_or_create(username=username)
 
         with transaction.atomic():
-            like, created = Like.objects.get_or_create(
-                user=user,
-                post_id=post_id,
-            )
-
-            if created:
+            like = Like.objects.filter(user=user, post_id=post_id).first()
+            
+            if like:
+                # Unlike - remove the like
+                like.delete()
+                # Also remove the karma event
+                KarmaEvent.objects.filter(user=Post.objects.get(id=post_id).author, points=5).delete()
+                return Response({"liked": False})
+            else:
+                # Like - add new like
+                Like.objects.create(user=user, post_id=post_id)
                 KarmaEvent.objects.create(
                     user=Post.objects.get(id=post_id).author,
                     points=5,
                 )
-
-        return Response({"liked": created})
+                return Response({"liked": True})
 
 
 class LeaderboardView(APIView):

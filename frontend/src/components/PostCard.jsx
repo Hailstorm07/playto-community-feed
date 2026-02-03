@@ -3,6 +3,7 @@ import { likePost, createComment } from "../api";
 import Comment from "./Comment";
 
 function PostCard({ post, onPostUpdate }) {
+  const [postData, setPostData] = useState(post);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [commentUsername, setCommentUsername] = useState("");
   const [commentContent, setCommentContent] = useState("");
@@ -11,8 +12,14 @@ function PostCard({ post, onPostUpdate }) {
   const handleLike = async () => {
     setLiking(true);
     try {
-      await likePost(post.id, commentUsername || "Anonymous");
-      onPostUpdate?.();
+      const res = await likePost(postData.id, commentUsername || "Anonymous");
+      if (res.data.liked) {
+        // Like was added
+        setPostData({ ...postData, like_count: postData.like_count + 1 });
+      } else {
+        // Like was removed
+        setPostData({ ...postData, like_count: Math.max(0, postData.like_count - 1) });
+      }
     } catch (error) {
       console.error("Error liking post:", error);
     }
@@ -23,10 +30,11 @@ function PostCard({ post, onPostUpdate }) {
     if (!commentContent.trim()) return;
 
     try {
-      await createComment(post.id, commentContent, commentUsername || "Anonymous");
+      await createComment(postData.id, commentContent, commentUsername || "Anonymous");
       setCommentContent("");
       setCommentUsername("");
       setShowCommentForm(false);
+      // Refresh to get the new comment
       onPostUpdate?.();
     } catch (error) {
       console.error("Error adding comment:", error);
@@ -36,11 +44,11 @@ function PostCard({ post, onPostUpdate }) {
   return (
     <div className="bg-white rounded shadow p-4 mb-6">
       <div className="mb-2 flex justify-between items-center">
-        <span className="font-semibold">{post.author}</span>
-        <span className="text-sm text-gray-500">{new Date(post.created_at).toLocaleDateString()}</span>
+        <span className="font-semibold">{postData.author}</span>
+        <span className="text-sm text-gray-500">{new Date(postData.created_at).toLocaleDateString()}</span>
       </div>
 
-      <p className="mb-4 text-gray-800">{post.content}</p>
+      <p className="mb-4 text-gray-800">{postData.content}</p>
 
       {/* LIKE BUTTON */}
       <div className="mb-4 flex gap-4">
@@ -49,7 +57,7 @@ function PostCard({ post, onPostUpdate }) {
           disabled={liking}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
         >
-          👍 {post.like_count} Likes
+          👍 {postData.like_count} Likes
         </button>
         <button
           onClick={() => setShowCommentForm(!showCommentForm)}
@@ -96,15 +104,15 @@ function PostCard({ post, onPostUpdate }) {
       {/* COMMENTS */}
       <div className="border-t pt-4">
         <h3 className="font-semibold text-sm mb-3">
-          Comments ({post.comments?.length || 0})
+          Comments ({postData.comments?.length || 0})
         </h3>
 
-        {post.comments?.length === 0 && (
+        {postData.comments?.length === 0 && (
           <p className="text-sm text-gray-500">No comments yet.</p>
         )}
 
-        {post.comments?.map((c) => (
-          <Comment key={c.id} comment={c} postId={post.id} onCommentAdded={onPostUpdate} />
+        {postData.comments?.map((c) => (
+          <Comment key={c.id} comment={c} postId={postData.id} onCommentAdded={onPostUpdate} />
         ))}
       </div>
     </div>
