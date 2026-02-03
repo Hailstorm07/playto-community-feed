@@ -11,8 +11,8 @@ export const createPost = (username, content) =>
 export const likePost = (postId, username) =>
   axios.post(`${API_BASE}/like/post/${postId}/`, { username });
 
-export const createComment = (postId, content, username) =>
-  axios.post(`${API_BASE}/comments/`, { post_id: postId, content, username });
+export const createComment = (postId, content, username, parentId = null) =>
+  axios.post(`${API_BASE}/comments/`, { post_id: postId, content, username, parent_id: parentId });
 
 export const fetchLeaderboard = () =>
   axios.get(`${API_BASE}/leaderboard/`);

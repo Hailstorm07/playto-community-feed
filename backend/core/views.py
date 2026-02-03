@@ -84,7 +84,7 @@ class LeaderboardView(APIView):
             .order_by("-total_karma")[:5]
         )
 
-        return Response(leaderboard)
+        return Response(list(leaderboard))
 
 class CreateCommentView(APIView):
     def post(self, request):

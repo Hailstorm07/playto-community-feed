@@ -104,7 +104,7 @@ function PostCard({ post, onPostUpdate }) {
         )}
 
         {post.comments?.map((c) => (
-          <Comment key={c.id} comment={c} />
+          <Comment key={c.id} comment={c} postId={post.id} onCommentAdded={onPostUpdate} />
         ))}
       </div>
     </div>
