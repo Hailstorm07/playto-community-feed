@@ -9,6 +9,27 @@ from .models import Post, Comment, Like, KarmaEvent
 from .serializers import PostSerializer
 from .utils import build_comment_tree
 
+class CreatePostView(APIView):
+    def post(self, request):
+        # Demo-only: assign first user as author
+        user = User.objects.first()
+
+        if not user:
+            return Response(
+                {"error": "No users exist"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = PostSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            serializer.save(author=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FeedView(APIView):
     def get(self, request):
