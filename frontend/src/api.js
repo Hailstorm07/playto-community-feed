@@ -1,7 +1,14 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
-});
+const API_BASE = "https://playto-community-feed-production.up.railway.app/api";
 
-export default api;
+export const fetchFeed = () =>
+  axios.get(`${API_BASE}/feed/`);
+
+export const createPost = (content) =>
+  axios.post(`${API_BASE}/posts/`, {
+    content,
+  });
+
+export const fetchLeaderboard = () =>
+  axios.get(`${API_BASE}/leaderboard/`);
