@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils.timezone import now
 from datetime import timedelta
 from django.db.models import Sum
+from django.db.models import Prefetch
 
 from .models import Post, Comment, Like, KarmaEvent
 from .serializers import PostSerializer
@@ -35,43 +36,62 @@ class CreatePostView(APIView):
 
 class FeedView(APIView):
     def get(self, request):
-        posts = Post.objects.all().select_related("author")
+        posts = (
+            Post.objects
+            .select_related("author")
+            .prefetch_related(
+                Prefetch(
+                    "comments",
+                    queryset=Comment.objects.select_related("author").prefetch_related("replies"),
+                )
+            )
+            .order_by("-created_at")
+        )
 
-        for post in posts:
-            comments = Comment.objects.filter(post=post).select_related("author")
-            post.comment_tree = build_comment_tree(comments)
+        return Response(PostSerializer(posts, many=True).data)
 
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
 
 
 class LikePostView(APIView):
-    @transaction.atomic
     def post(self, request, post_id):
-        post = Post.objects.select_for_update().get(id=post_id)
+        user = User.objects.first()
 
-        like, created = Like.objects.get_or_create(
-            user=request.user,
-            post=post
-        )
+        with transaction.atomic():
+            like, created = Like.objects.get_or_create(
+                user=user,
+                post_id=post_id,
+            )
 
-        if not created:
-            return Response({"detail": "Already liked"}, status=400)
+            if created:
+                KarmaEvent.objects.create(
+                    user=Post.objects.get(id=post_id).author,
+                    points=5,
+                )
 
-        KarmaEvent.objects.create(user=post.author, points=5)
-        return Response({"status": "liked"})
+        return Response({"liked": created})
 
 
 class LeaderboardView(APIView):
     def get(self, request):
-        last_24h = now() - timedelta(hours=24)
+        since = now() - timedelta(hours=24)
 
-        data = (
+        leaderboard = (
             KarmaEvent.objects
-            .filter(created_at__gte=last_24h)
+            .filter(created_at__gte=since)
             .values("user__username")
             .annotate(total_karma=Sum("points"))
             .order_by("-total_karma")[:5]
         )
 
-        return Response(data)
+        return Response(leaderboard)
+
+class CreateCommentView(APIView):
+    def post(self, request):
+        user = User.objects.first()
+        Comment.objects.create(
+            author=user,
+            post_id=request.data["post_id"],
+            parent_id=request.data.get("parent_id"),
+            content=request.data["content"],
+        )
+        return Response({"status": "ok"})
