@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, csrf_exempt
 from django.db import transaction
 from django.utils.timezone import now
 from datetime import timedelta
@@ -14,7 +14,6 @@ from .serializers import PostSerializer
 from .utils import build_comment_tree
 
 class CreatePostView(APIView):
-    @csrf_exempt
     def post(self, request):
         print("REQUEST DATA:", request.data)
 
@@ -88,7 +87,6 @@ class LeaderboardView(APIView):
         return Response(leaderboard)
 
 class CreateCommentView(APIView):
-    @csrf_exempt
     def post(self, request):
         user = User.objects.first()
         Comment.objects.create(
